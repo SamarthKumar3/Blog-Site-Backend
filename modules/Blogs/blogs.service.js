@@ -1,22 +1,25 @@
-const blogSchema = require('../../db/db_config');
+const { Blog } = require('../../db/db_config');
 
 module.exports = {
-    addBlogService: (title, content, creator, callback) => {
-        let newBlog = new blogSchema({
+    addBlogService: (title, content, creator, tags, categories, callback) => {
+        let newBlog = new Blog({
             title,
             content,
-            creator
+            tags,
+            categories,
+            creator,
         });
-        newBlog.save().then((blog) => {
-            callback(null, blog);
-        })
+        newBlog.save()
+            .then((blog) => {
+                callback(null, blog);
+            })
             .catch((err) => {
-                callback({ err: "Could not add blog" }, null);
+                callback(err, null);
             });
     },
 
     getBlogByIdService: (blogId, callback) => {
-        blogSchema.findById(blogId)
+        Blog.findById(blogId)
             .then((blog) => {
                 callback(null, blog);
             })
@@ -24,9 +27,10 @@ module.exports = {
                 callback({ err: "Could not find Blog" }, null);
             });
     },
+
     deleteBlogService: (blogId, callback) => {
         console.log('Deleting blog with ID:', blogId);
-        blogSchema.deleteOne({ _id: blogId })
+        Blog.deleteOne({ _id: blogId })
             .then((deleted) => {
                 callback(null, deleted);
             })
@@ -34,6 +38,28 @@ module.exports = {
                 console.error(err);
                 callback({ err: "Could not find Blog" }, null);
             });
-    }
+    },
 
+    addLikesService: async (blog, callback) => {
+        blog.likes += 1;
+        await blog.save()
+            .then((blog) => {
+                callback(null, blog);
+            })
+            .catch((err) => {
+                callback(err, null);
+            });
+
+    },
+
+    addCommentsService: async (blog, name, comment, callback) => {
+        blog.comments.push({ name, comment });
+        await blog.save()
+            .then((blog) => {
+                callback(null, blog);
+            })
+            .catch((err) => {
+                callback(err, null);
+            });
+    }
 }
