@@ -14,14 +14,29 @@ module.exports = {
             });
     },
 
-    addUser: (req, res) => {
+    addUser: async (req, res) => {
         const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
             return res.status(400).json("Missing data fields! Could not create user");
         }
 
-        createUser(name, email, password, (err, result) => {
+        let existingUser;
+        try {
+            existingUser = await userSchema.findOne({ email: email });
+        } catch (err) {
+            const error = new HttpError('Signing Up failed, please try again later.', 500)
+            return next(error);
+        }
+
+        if (existingUser) {
+            const error = new HttpError('User Exists already, please login instead.', 422)
+            return next(error);
+        }
+
+        const img= req.file.path;
+
+        createUser(name, email, password,img, (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(500).send({ error: err });
@@ -61,7 +76,7 @@ module.exports = {
             }
         })
 
-        
+
     },
 
     deleteUser: (req, res) => {

@@ -1,15 +1,16 @@
 const { Blog } = require('../../db/db_config');
 
 module.exports = {
-    addBlogService: (title, content, creator, tags, categories, callback) => {
+    addBlogService: async (title, content, creator, tags, categories, img, callback) => {
         let newBlog = new Blog({
             title,
             content,
             tags,
             categories,
             creator,
+            image: img,
         });
-        newBlog.save()
+        await newBlog.save()
             .then((blog) => {
                 callback(null, blog);
             })
@@ -18,8 +19,8 @@ module.exports = {
             });
     },
 
-    getBlogByIdService: (blogId, callback) => {
-        Blog.findById(blogId)
+    getBlogByIdService: async (blogId, callback) => {
+        await Blog.findById(blogId)
             .then((blog) => {
                 callback(null, blog);
             })
@@ -28,9 +29,9 @@ module.exports = {
             });
     },
 
-    deleteBlogService: (blogId, callback) => {
+    deleteBlogService: async (blogId, callback) => {
         console.log('Deleting blog with ID:', blogId);
-        Blog.deleteOne({ _id: blogId })
+        await Blog.deleteOne({ _id: blogId })
             .then((deleted) => {
                 callback(null, deleted);
             })

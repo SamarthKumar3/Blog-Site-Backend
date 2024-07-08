@@ -1,11 +1,14 @@
 const userSchema = require('../../db/db_config');
 
 module.exports = {
-    createUser: (name, email, password, callback) => {
+    createUser: (name, email, password, img, callback) => {
         let newUser = new userSchema({
             name,
             email,
-            password
+            password,
+            bio,
+            profilePic: img,
+            blogs: []
         });
         newUser.save().then((user) => {
             callback(null, user);
@@ -26,21 +29,21 @@ module.exports = {
     },
 
     loginUser: async (email, password, callback) => {
-        try{
+        try {
             const user = await userSchema.findOne({ email });
-            if(!user){
+            if (!user) {
                 return callback({ err: 'Invalid email id' }, null);
             }
             if (user.password !== password) {
                 return callback({ err: 'Invalid password' }, null);
             }
 
-            callback(null, {message: 'Successfully signed in'});
+            callback(null, { message: 'Successfully signed in' });
         }
-        catch(err){
+        catch (err) {
             callback({ err: "Could not find user" }, null);
         }
-            
+
     },
 
     deleteUserService: (userId, callback) => {

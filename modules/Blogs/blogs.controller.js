@@ -19,19 +19,21 @@ module.exports = {
             });
     },
     addBlog: async (req, res) => {
+        console.log(req.file);
         const { title, content, creator, tags, categories } = req.body;
 
         if (!title || !content || !creator || !tags || !categories) {
             return res.status(400).json("Missing data fields! Could not create blog");
         }
 
+        const img = req.file.path;
         try {
             const user = await User.findById(creator);
             if (!user) {
                 return res.status(404).json("User not found");
             }
 
-            addBlogService(title, content, creator, tags, categories, (err, result) => {
+            addBlogService(title, content, creator, tags, categories, img, (err, result) => {
                 if (err) {
                     return res.status(500).send({ error: err });
                 } else {
