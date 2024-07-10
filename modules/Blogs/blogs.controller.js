@@ -19,21 +19,21 @@ module.exports = {
             });
     },
     addBlog: async (req, res) => {
-        console.log(req.file);
         const { title, content, creator, tags, categories } = req.body;
 
         if (!title || !content || !creator || !tags || !categories) {
             return res.status(400).json("Missing data fields! Could not create blog");
         }
 
-        const img = req.file.path;
+        // const img = req.file.path;
         try {
-            const user = await User.findById(creator);
+            const user = await User.findById();
             if (!user) {
                 return res.status(404).json("User not found");
             }
+            const userId = user._id;
 
-            addBlogService(title, content, creator, tags, categories, img, (err, result) => {
+            addBlogService(title, content, userId, tags, categories, (err, result) => {
                 if (err) {
                     return res.status(500).send({ error: err });
                 } else {
@@ -43,16 +43,15 @@ module.exports = {
                             res.status(201).send(result);
                         })
                         .catch((err) => {
-                            res.status(500).send({ error: 'Save Error' })
+                            res.status(500).send({ error: 'Save Error' });
                         });
                 }
             });
-        }
-        catch (err) {
+        } catch (err) {
             return res.status(500).send({ error: err.message });
         }
-
     },
+
 
     getBlogById: (req, res) => {
         const blogId = req.params.blogId;
@@ -89,8 +88,8 @@ module.exports = {
             // return next(error);
             return res.status(400).send({ error: err });
         }
-    
-        if(blog.creator.id !== req.blogId){
+
+        if (blog.creator.id !== req.blogId) {
             // const error = new HttpError( 'You do not have access to this API feature (deleting).', 401 )
             // return next(error);
             return res.status(400).send({ error: 'You do not have access to this API feature (deleting)' });

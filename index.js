@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { globalRouter } = require('./routes/global.router');
-// const cors = require('cors');
+const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 
@@ -21,6 +21,7 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(cors());
 app.use('/', globalRouter);
 
 app.use((req, res, next) => {

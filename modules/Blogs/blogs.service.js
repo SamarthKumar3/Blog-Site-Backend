@@ -1,22 +1,26 @@
 const { Blog } = require('../../db/db_config');
 
 module.exports = {
-    addBlogService: async (title, content, creator, tags, categories, img, callback) => {
+    addBlogService: async (title, content, userId, tags, categories, callback) => {
         let newBlog = new Blog({
             title,
             content,
+            creator: userId,
             tags,
             categories,
-            creator,
-            image: img,
+            // image: img,
         });
-        await newBlog.save()
+        const savedBlog = await newBlog.save();
+
+        user.blogs.push(savedBlog._id);
+        await user.save()        
             .then((blog) => {
                 callback(null, blog);
             })
             .catch((err) => {
                 callback(err, null);
             });
+
     },
 
     getBlogByIdService: async (blogId, callback) => {

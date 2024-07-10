@@ -25,23 +25,23 @@ const blogSchema = new Schema({
         type: [String],
         required: true
     },
-    image: {
-        type: String
-    },
+    // image: {
+    //     type: String
+    // },
     likes: {
         type: Number,
         default: 0
     },
-    comments: [{
-        name: {
-            type: String,
-            required: true
-        },
-        comment: {
-            type: String,
-            required: true
-        }
-    }],
+    // comments: [{
+    //     name: {
+    //         type: String,
+    //         required: true
+    //     },
+    //     comment: {
+    //         type: String,
+    //         required: true
+    //     }
+    // }],
 },
     {
         timestamps: true
@@ -66,7 +66,7 @@ const userSchema = new Schema({
     },
     bio:{
         type: String,
-        required: true
+        // required: true
     },
     profilePic: {
         type: String,
