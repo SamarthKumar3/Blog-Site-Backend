@@ -1,13 +1,13 @@
-const userSchema = require('../../db/db_config');
+const userSchema = require('../../db/db_config').User;
 
 module.exports = {
-    createUser: (name, email, password, img, callback) => {
+    createUser: (name, email, password,  callback) => {
         let newUser = new userSchema({
             name,
             email,
             password,
-            bio,
-            profilePic: img,
+            // bio,
+            // profilePic: img,
             blogs: []
         });
         newUser.save().then((user) => {

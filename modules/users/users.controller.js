@@ -1,5 +1,5 @@
 // Import necessary modules and dependencies
-const userSchema = require('../../db/db_config').userSchema;
+const userSchema = require('../../db/db_config').User;
 const mongoose = require('mongoose');
 const { createUser, getUserByIdService, deleteUserService, loginUser } = require('./users.services');
 
@@ -14,7 +14,7 @@ module.exports = {
             });
     },
 
-    addUser: async (req, res) => {
+    addUser: async (req, res, next) => {
         const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
@@ -23,20 +23,21 @@ module.exports = {
 
         let existingUser;
         try {
-            existingUser = await userSchema.findOne({ email: email });
+            existingUser = await userSchema.findOne({ email });
         } catch (err) {
-            const error = new HttpError('Signing Up failed, please try again later.', 500)
-            return next(error);
+            // const error = new HttpError('Signing Up failed, please try again later.', 500)
+            return next(err);
         }
 
         if (existingUser) {
-            const error = new HttpError('User Exists already, please login instead.', 422)
+            // const error = new HttpError('User Exists already, please login instead.', 422)
+            const error= new Error('User Exists already, please login instead.');
             return next(error);
         }
 
-        const img= req.file.path;
+        // const img= req.file.path;
 
-        createUser(name, email, password,img, (err, result) => {
+        createUser(name, email, password, (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(500).send({ error: err });
