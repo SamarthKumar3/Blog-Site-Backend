@@ -5,7 +5,7 @@ module.exports = {
         let newBlog = new Blog({
             title,
             content,
-            creator: userId,
+            creator:userId,
             tags,
             categories,
             image: img,

@@ -26,17 +26,17 @@ module.exports = {
             return res.status(400).json("Missing data fields! Could not create blog");
         }
         // const img = req.file.path;
-        const img='https://preview.redd.it/about-gojos-unlimited-void-v0-tpkax14ukz7c1.png?width=840&format=png&auto=webp&s=b6c464711bc6ee97b4f50118c64fbf51544d6c7d'
+        const img = 'https://preview.redd.it/about-gojos-unlimited-void-v0-tpkax14ukz7c1.png?width=840&format=png&auto=webp&s=b6c464711bc6ee97b4f50118c64fbf51544d6c7d'
         if (!img) {
             return res.status(400).json("Missing Image");
         }
         try {
-            const user = await User.findById(creator);
+            const user = await User.findOne({ name:creator });
             if (!user) {
                 return res.status(404).json("User not found");
             }
             const userId = user._id;
-            
+
             addBlogService(title, content, userId, tags, categories, img, (err, result) => {
                 if (err) {
                     return res.status(500).send({ error: err });

@@ -10,9 +10,9 @@ blogsRouter.get('/:blogId',getBlogById);
 
 blogsRouter.post('/create/new',fileUpload.single('image') ,addBlog);
 
-blogsRouter.patch('/:blogId/likes', addLikes);
+blogsRouter.patch('/likes/:blogId', addLikes);
 
-blogsRouter.patch('/:blogId/comments', addComments);
+blogsRouter.post('/comments/:blogId', addComments);
 
 blogsRouter.delete('/delete/:blogId', deleteBlog);
 
