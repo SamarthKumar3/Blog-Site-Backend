@@ -32,6 +32,10 @@ const blogSchema = new Schema({
         type: Number,
         default: 0
     },
+    likedBy: [{
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     comments: [{
         name: {
             type: String,
@@ -64,7 +68,7 @@ const userSchema = new Schema({
         required: true,
         unique: true
     },
-    bio:{
+    bio: {
         type: String,
         // required: true
     },

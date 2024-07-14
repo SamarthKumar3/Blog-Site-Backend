@@ -31,7 +31,7 @@ module.exports = {
             return res.status(400).json("Missing Image");
         }
         try {
-            const user = await User.findOne({ name:creator });
+            const user = await User.findOne({ name: creator });
             if (!user) {
                 return res.status(404).json("User not found");
             }
@@ -116,12 +116,18 @@ module.exports = {
 
     addLikes: async (req, res) => {
         try {
-            const blog = await Blog.findById(req.params.id);
+            const blog = await Blog.findById(req.params.blogId);
             if (!blog) {
                 return res.status(404).json({ error: 'Blog not found' });
             }
+            // // add user id to the request body // //
+            // // dont let the user to like the blog more than once // //
+            const userId = req.body.userId; 
+            if (blog.likedBy.includes(userId)) {
+                return res.status(400).json({ error: 'User has already liked this post' });
+            }
 
-            addLikesService(blog, (err, result) => {
+            addLikesService(blog,userId, (err, result) => {
                 if (err) {
                     return res.status(304).send({ error: err });
                 }
@@ -136,7 +142,7 @@ module.exports = {
 
     addComments: async (req, res) => {
         try {
-            const blog = await Blog.findById(req.params.id);
+            const blog = await Blog.findById(req.params.blogId);
             if (!blog) {
                 return res.status(404).json({ error: 'Blog not found' });
             }
