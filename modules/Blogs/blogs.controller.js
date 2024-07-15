@@ -26,7 +26,8 @@ module.exports = {
             return res.status(400).json("Missing data fields! Could not create blog");
         }
         // const img = req.file.path;
-        const img = 'https://preview.redd.it/about-gojos-unlimited-void-v0-tpkax14ukz7c1.png?width=840&format=png&auto=webp&s=b6c464711bc6ee97b4f50118c64fbf51544d6c7d'
+        // const img = 'https://preview.redd.it/about-gojos-unlimited-void-v0-tpkax14ukz7c1.png?width=840&format=png&auto=webp&s=b6c464711bc6ee97b4f50118c64fbf51544d6c7d'
+        const img = 'https://images7.alphacoders.com/131/1318705.png'
         if (!img) {
             return res.status(400).json("Missing Image");
         }
@@ -122,12 +123,12 @@ module.exports = {
             }
             // // add user id to the request body // //
             // // dont let the user to like the blog more than once // //
-            const userId = req.body.userId; 
+            const userId = req.body.userId;
             if (blog.likedBy.includes(userId)) {
                 return res.status(400).json({ error: 'User has already liked this post' });
             }
 
-            addLikesService(blog,userId, (err, result) => {
+            addLikesService(blog, userId, (err, result) => {
                 if (err) {
                     return res.status(304).send({ error: err });
                 }

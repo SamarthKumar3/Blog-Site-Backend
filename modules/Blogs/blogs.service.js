@@ -6,8 +6,8 @@ module.exports = {
             title,
             content,
             creator: userId,
-            tags,
-            categories,
+            tags: JSON.parse(tags),
+            categories: JSON.parse(categories),
             image: img,
             likes: 0,
             comments: []
