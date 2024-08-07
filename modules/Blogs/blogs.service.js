@@ -66,5 +66,22 @@ module.exports = {
             .catch((err) => {
                 callback(err, null);
             });
+    },
+
+    deleteCommentService: async (blog, commentId, callback) => {
+        const comment = blog.comments.id(commentId);
+        if (!comment) {
+            return callback(err, null);
+        }
+
+        blog.comments.pull(commentId);
+
+        await blog.save()
+            .then((blog) => {
+                callback(null, blog);
+            })
+            .catch((err) => {
+                callback(err, null);
+            });
     }
 }

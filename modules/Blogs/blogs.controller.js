@@ -1,6 +1,7 @@
+const { log } = require('console');
 const { Blog, User } = require('../../db/db_config');
 const
-    { addBlogService, getBlogByIdService, deleteBlogService, addLikesService, addCommentsService }
+    { addBlogService, getBlogByIdService, deleteBlogService, addLikesService, addCommentsService, deleteCommentService }
         = require('./blogs.service');
 
 const uuid = require('uuid').v4;
@@ -162,6 +163,34 @@ module.exports = {
             });
 
         } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    },
+
+    deleteComment: async (req, res) => {
+        try {
+            const { blogId, commentId } = req.params;
+
+            if (!mongoose.Types.ObjectId.isValid(blogId) || !mongoose.Types.ObjectId.isValid(commentId)) {
+                return res.status(400).json({ error: 'Invalid blog ID or comment ID' });
+            }
+    
+            const blog = await Blog.findById(blogId);
+            if (!blog) {
+                return res.status(404).json({ error: 'Blog not found' });
+            }
+
+            deleteCommentService(blog, commentId, (err, result) => {
+                if (err) {
+                    return res.status(304).send({ error: err });
+                }
+                else {
+                    return res.status(200).json({"Success":"Comment Deleted"});
+                }
+            });
+        }
+        catch (error) {
+            console.log(error);
             return res.status(500).json({ error: error.message });
         }
     }

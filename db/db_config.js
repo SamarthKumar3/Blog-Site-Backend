@@ -3,6 +3,20 @@ const uniqueValidator = require('mongoose-unique-validator');
 
 const Schema = mongoose.Schema;
 
+const commentSchema = new Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    comment: {
+        type: String,
+        required: true
+    }
+}, {
+    timestamps: true
+});
+
+
 const blogSchema = new Schema({
     title: {
         type: String,
@@ -36,16 +50,21 @@ const blogSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     }],
-    comments: [{
-        name: {
-            type: String,
-            required: true
-        },
-        comment: {
-            type: String,
-            required: true
-        }
-    }],
+    comments: [commentSchema]
+    // comments: [{
+    //     id: {
+    //         _id: uuid(),
+    //         type: Schema.Types.ObjectId,
+    //     },
+    //     name: {
+    //         type: String,
+    //         required: true
+    //     },
+    //     comment: {
+    //         type: String,
+    //         required: true
+    //     }
+    // }],
 },
     {
         timestamps: true
