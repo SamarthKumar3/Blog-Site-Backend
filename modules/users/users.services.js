@@ -6,7 +6,7 @@ module.exports = {
             name,
             email,
             password,
-            // bio,
+            bio,
             // profilePic: img,
             blogs: []
         });
@@ -32,16 +32,15 @@ module.exports = {
         try {
             const user = await userSchema.findOne({ email });
             if (!user) {
-                return callback({ err: 'Invalid email id' }, null);
+                return callback({ message: 'Invalid email id' }, null);
             }
             if (user.password !== password) {
-                return callback({ err: 'Invalid password' }, null);
+                return callback({ message: 'Invalid password' }, null);
             }
-
             callback(null, { message: 'Successfully signed in' });
         }
         catch (err) {
-            callback({ err: "Could not find user" }, null);
+            callback({ message: "Could not find user due to server error" }, null);
         }
 
     },

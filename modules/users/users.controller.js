@@ -31,7 +31,7 @@ module.exports = {
 
         if (existingUser) {
             // const error = new HttpError('User Exists already, please login instead.', 422)
-            const error= new Error('User Exists already, please login instead.');
+            const error = new Error('User Exists already, please login instead.');
             return next(error);
         }
 
@@ -43,7 +43,7 @@ module.exports = {
                 return res.status(500).send({ error: err });
             }
             else {
-                return res.status(201).send(result);
+                return res.status(201).send({ result, success: true });
             }
         })
     },
@@ -65,7 +65,7 @@ module.exports = {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).json("Missing data fields! Could not sign in user");
+            return res.status(400).json({ error: "Missing data fields! Could not sign in user" });
         }
 
         loginUser(email, password, (err, result) => {
@@ -73,11 +73,9 @@ module.exports = {
                 return res.status(401).send({ error: err });
             }
             else {
-                return res.status(201).send(result);
+                return res.status(201).send({ result, success: true });
             }
         })
-
-
     },
 
     deleteUser: (req, res) => {
