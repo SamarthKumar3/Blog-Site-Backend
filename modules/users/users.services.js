@@ -1,20 +1,27 @@
 const userSchema = require('../../db/db_config').User;
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+dotenv.config();
 
 module.exports = {
-    createUser: (name, email, password,  callback) => {
+    createUser: async (name, email, hashedPassword, bio, callback) => {
         let newUser = new userSchema({
             name,
             email,
-            password,
+            password: hashedPassword,
             bio,
             // profilePic: img,
             blogs: []
         });
-        newUser.save().then((user) => {
-            callback(null, user);
-        })
+        await newUser.save()
+            .then((user) => {
+                let token;
+                token = jwt.sign({ userId: user.id, email: user.email }, `${process.env.SECRET_KEY}`, { expiresIn: '1h' });
+                callback(null, { userId: user.id, email: user.email, token });
+            })
             .catch((err) => {
-                callback({ err }, null);
+                console.error(err);
+                callback({ message: "Could not create user" }, null);
             });
     },
 
@@ -28,21 +35,15 @@ module.exports = {
             });
     },
 
-    loginUser: async (email, password, callback) => {
+    loginUser: async (existingUser, callback) => {
+        let token;
         try {
-            const user = await userSchema.findOne({ email });
-            if (!user) {
-                return callback({ message: 'Invalid email id' }, null);
-            }
-            if (user.password !== password) {
-                return callback({ message: 'Invalid password' }, null);
-            }
-            callback(null, { message: 'Successfully signed in' });
+            token = jwt.sign({ userId: existingUser.id, email: existingUser.email }, `${process.env.SECRET_KEY}`, { expiresIn: '1h' });
+        } catch (err) {
+            console.error(err);
+            callback({ message: "Logging In failed, please try again later." }, null);
         }
-        catch (err) {
-            callback({ message: "Could not find user due to server error" }, null);
-        }
-
+        callback(null, { userId: existingUser.id, email: existingUser.email, token });
     },
 
     deleteUserService: (userId, callback) => {
