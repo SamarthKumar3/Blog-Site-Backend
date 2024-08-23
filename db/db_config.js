@@ -10,7 +10,8 @@ const commentSchema = new Schema({
     },
     comment: {
         type: String,
-        required: true
+        required: true,
+        minlength: 5
     }
 }, {
     timestamps: true
@@ -24,7 +25,8 @@ const blogSchema = new Schema({
     },
     content: {
         type: String,
-        required: true
+        required: true,
+        minlength: 20
     },
     creator: {
         type: Schema.Types.ObjectId,

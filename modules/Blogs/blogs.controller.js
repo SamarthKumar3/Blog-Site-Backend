@@ -1,4 +1,3 @@
-const { log } = require('console');
 const { Blog, User } = require('../../db/db_config');
 const
     { addBlogService, getBlogByIdService, deleteBlogService, addLikesService, addCommentsService, deleteCommentService }
@@ -6,59 +5,11 @@ const
 
 const uuid = require('uuid').v4;
 const fs = require('fs');
-
+const HttpError = require('../../middleware/http-error');
+const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 
 module.exports = {
-    getBlogs: (req, res) => {
-        Blog.find({}).then((blogs) => {
-            res.json(blogs);
-        })
-            .catch((err) => {
-                console.error(err);
-                res.status(500).json({ error: 'Error fetching Blogs' });
-            });
-    },
-
-    addBlog: async (req, res) => {
-        const { title, content, creator, tags, categories } = req.body;
-
-        if (!title || !content || !creator || !tags || !categories) {
-            return res.status(400).json("Missing data fields! Could not create blog");
-        }
-        // const img = req.file.path;
-        // const img = 'https://preview.redd.it/about-gojos-unlimited-void-v0-tpkax14ukz7c1.png?width=840&format=png&auto=webp&s=b6c464711bc6ee97b4f50118c64fbf51544d6c7d'
-        const img = 'https://images7.alphacoders.com/131/1318705.png'
-        if (!img) {
-            return res.status(400).json("Missing Image");
-        }
-        try {
-            const user = await User.findOne({ name: creator });
-            if (!user) {
-                return res.status(404).json("User not found");
-            }
-            const userId = user._id;
-
-            addBlogService(title, content, userId, tags, categories, img, (err, result) => {
-                if (err) {
-                    return res.status(500).send({ error: err });
-                } else {
-                    user.blogs.push(result._id);
-                    user.save().
-                        then(() => {
-                            res.status(201).send(result);
-                        })
-                        .catch((err) => {
-                            res.status(500).send({ error: 'Save Error' });
-                        });
-                }
-            });
-        } catch (err) {
-            return res.status(500).send({ error: err.message });
-        }
-    },
-
-
     getBlogById: (req, res) => {
         const blogId = req.params.blogId;
 
@@ -72,48 +23,97 @@ module.exports = {
         })
 
     },
+    getBlogs: async (req, res, next) => {
+        let blogs;
+        try {
+            blogs = await Blog.find({});
+        }
+        catch (err) {
+            const error = new HttpError('Could not fetch blogs', 500);
+            return res.status(500).send({ error: err });
+        }
+        if (!blogs) {
+            const error = new HttpError('No blogs found', 404);
+            return next(error);
+        }
+        res.json({ blogs: blogs.map(blog => blog.toObject({ getters: true })) });
+    },
+
+    addBlog: async (req, res, next) => {
+        const errors = validationResult(req);
+        const { title, content, tags, categories } = req.body;
+
+        if (!errors.isEmpty()) {
+            return next(new HttpError('Invalid inputs passed, please check your data', 422));
+        }
+        // const img = 'https://preview.redd.it/about-gojos-unlimited-void-v0-tpkax14ukz7c1.png?width=840&format=png&auto=webp&s=b6c464711bc6ee97b4f50118c64fbf51544d6c7d'
+        // const img = 'https://images7.alphacoders.com/131/1318705.png'
+
+        const img = req.file.path;
+        if (!img) {
+            return res.status(400).json("Missing Image");
+        }
+        let user;
+        try {
+            user = await User.findById(req.userData.userId);
+        }
+        catch (err) {
+            const error = new HttpError('Could not find user', 500);
+            return next(error);
+        }
+
+        if (!user) {
+            const error = new HttpError('Could not find user for provided id', 404);
+            return next(error);
+        }
+
+        addBlogService(title, content, tags, categories, img, user, (err, result) => {
+            if (err) {
+                return res.status(500).send({ error: err });
+            } else {
+                return res.status(201).json({ blog: result });
+            }
+        });
+    },
 
     deleteBlog: async (req, res, next) => {
-        const blogId = new mongoose.Types.ObjectId(req.params.blogId);
-        // const blogId=req.params.blogId;
+        // const blogId = new mongoose.Types.ObjectId(req.params.blogId);
+        const blogId = req.params.blogId;
 
         let blog;
         try {
-            blog = await Place.findById(blogId).populate('creator');
+            blog = await Blog.findById(blogId).populate('creator');
         } catch (err) {
-            // const error = new HttpError(
-            //     'Something went wrong, could not delete place.',
-            //     500
-            // );
-            // return next(error);
-            return res.status(400).send({ error: err });
+            const error = new HttpError(
+                'Something went wrong, could not delete place.',
+                500
+            );
+            return next(error);
         }
 
         if (!blog) {
-            // const error = new HttpError("Could not find a place with that id.", 404);
-            // return next(error);
-            return res.status(400).send({ error: err });
+            const error = new HttpError("Could not find a place with that id.", 404);
+            return next(error);
+        }
+        console.log(blog.creator.id);
+
+        if (blog.creator.id !== req.userData.userId) {
+            const error = new HttpError('You do not have access to this API feature (deleting).', 401)
+            return next(error);
         }
 
-        if (blog.creator.id !== req.blogId) {
-            // const error = new HttpError( 'You do not have access to this API feature (deleting).', 401 )
-            // return next(error);
-            return res.status(400).send({ error: 'You do not have access to this API feature (deleting)' });
-        }
-
-        const imagePath = blog.image;
-        fs.unlink(imagePath, err => {
-            console.log(err);
-        });
-
-        deleteBlogService(blogId, (err, result) => {
+        deleteBlogService(blog, (err, result) => {
             if (err) {
                 return res.status(400).send({ error: err });
             }
             else {
                 return res.status(200).json({ message: 'Successfully Deleted' });
             }
-        })
+        });
+        const imagePath = blog.image;
+        fs.unlink(imagePath, err => {
+            console.log(err);
+        });
     },
 
     addLikes: async (req, res) => {
@@ -174,7 +174,7 @@ module.exports = {
             if (!mongoose.Types.ObjectId.isValid(blogId) || !mongoose.Types.ObjectId.isValid(commentId)) {
                 return res.status(400).json({ error: 'Invalid blog ID or comment ID' });
             }
-    
+
             const blog = await Blog.findById(blogId);
             if (!blog) {
                 return res.status(404).json({ error: 'Blog not found' });
@@ -185,7 +185,7 @@ module.exports = {
                     return res.status(304).send({ error: err });
                 }
                 else {
-                    return res.status(200).json({"Success":"Comment Deleted"});
+                    return res.status(200).json({ "Success": "Comment Deleted" });
                 }
             });
         }

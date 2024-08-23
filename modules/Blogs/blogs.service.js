@@ -1,24 +1,33 @@
 const { Blog } = require('../../db/db_config');
+const mongoose = require('mongoose');
+const HttpError = require('../../middleware/http-error');
 
 module.exports = {
-    addBlogService: async (title, content, userId, tags, categories, img, callback) => {
+    addBlogService: async (title, content, tags, categories, img, user, callback) => {
         let newBlog = new Blog({
             title,
             content,
-            creator: userId,
+            creator: user.id,
             tags: JSON.parse(tags),
+            // tags,
+            // categories,
             categories: JSON.parse(categories),
             image: img,
             likes: 0,
             comments: []
         });
-        await newBlog.save()
-            .then((blog) => {
-                callback(null, blog);
-            })
-            .catch((err) => {
-                callback(err, null);
-            });
+        try {
+            const sess = await mongoose.startSession();
+            sess.startTransaction();
+            await newBlog.save({ session: sess });
+            user.blogs.push(newBlog);
+            await user.save({ session: sess });
+            await sess.commitTransaction();
+            callback(null, newBlog);
+        } catch (err) {
+            console.log(err);
+            callback(err, null);
+        }
 
     },
 
@@ -28,20 +37,24 @@ module.exports = {
                 callback(null, blog);
             })
             .catch((err) => {
-                callback({ err: "Could not find Blog" }, null);
+                callback({ message: "Could not find Blog" }, null);
             });
     },
 
-    deleteBlogService: async (blogId, callback) => {
-        console.log('Deleting blog with ID:', blogId);
-        await Blog.deleteOne({ _id: blogId })
-            .then((deleted) => {
-                callback(null, deleted);
-            })
-            .catch((err) => {
-                console.error(err);
-                callback({ err: "Could not find Blog" }, null);
-            });
+    deleteBlogService: async (blog, callback) => {
+        console.log('Deleting blog with ID:', blog.id);
+        try {
+            const sess = await mongoose.startSession();
+            sess.startTransaction();
+            await Blog.deleteOne({ _id: blog.id }, { session: sess });  
+            blog.creator.blogs.pull(blog);
+            await blog.creator.save({ session: sess });
+            await sess.commitTransaction();
+            callback(null, "Successfully Deleted");
+        } catch (err) {
+            console.log(err);
+            callback(err, null);
+        }
     },
 
     addLikesService: async (blog, userId, callback) => {
