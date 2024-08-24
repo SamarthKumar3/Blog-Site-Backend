@@ -33,6 +33,9 @@ const blogSchema = new Schema({
         ref: 'User',
         required: true
     },
+    creatorName: {
+        type: String,
+    },
     tags: {
         type: [String],
         required: true

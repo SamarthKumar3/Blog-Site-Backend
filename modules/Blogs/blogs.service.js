@@ -14,7 +14,8 @@ module.exports = {
             categories: JSON.parse(categories),
             image: img,
             likes: 0,
-            comments: []
+            comments: [],
+            creatorName: user.name
         });
         try {
             const sess = await mongoose.startSession();
@@ -46,7 +47,7 @@ module.exports = {
         try {
             const sess = await mongoose.startSession();
             sess.startTransaction();
-            await Blog.deleteOne({ _id: blog.id }, { session: sess });  
+            await Blog.deleteOne({ _id: blog.id }, { session: sess });
             blog.creator.blogs.pull(blog);
             await blog.creator.save({ session: sess });
             await sess.commitTransaction();

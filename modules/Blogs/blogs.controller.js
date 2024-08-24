@@ -42,7 +42,6 @@ module.exports = {
     addBlog: async (req, res, next) => {
         const errors = validationResult(req);
         const { title, content, tags, categories } = req.body;
-
         if (!errors.isEmpty()) {
             return next(new HttpError('Invalid inputs passed, please check your data', 422));
         }
@@ -77,7 +76,6 @@ module.exports = {
     },
 
     deleteBlog: async (req, res, next) => {
-        // const blogId = new mongoose.Types.ObjectId(req.params.blogId);
         const blogId = req.params.blogId;
 
         let blog;
