@@ -17,7 +17,6 @@ const commentSchema = new Schema({
     timestamps: true
 });
 
-
 const blogSchema = new Schema({
     title: {
         type: String,
