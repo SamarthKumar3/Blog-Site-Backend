@@ -26,7 +26,7 @@ module.exports = {
     },
 
     getUserByIdService: (userId, callback) => {
-        userSchema.findById(userId)
+        userSchema.findById(userId, '-password')
             .then((user) => {
                 callback(null, user);
             })
@@ -42,6 +42,7 @@ module.exports = {
         } catch (err) {
             console.error(err);
             callback({ message: "Logging In failed, please try again later." }, null);
+            return;
         }
         callback(null, { userId: existingUser.id, email: existingUser.email, token });
     },

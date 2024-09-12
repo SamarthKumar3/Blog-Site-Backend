@@ -8,7 +8,7 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 
 module.exports = {
-    getUsers: async (req, res, next) => {        
+    getUsers: async (req, res, next) => {
         let users;
         try {
             users = await userSchema.find({}, '-password');
@@ -62,9 +62,8 @@ module.exports = {
     },
 
     getUserById: (req, res) => {
-        const userId = req.params.userId;
-
-        getUserByIdService(userId, (err, result) => {
+        const userId = req.params.id;
+        getUserByIdService(userId   , (err, result) => {
             if (err) {
                 return res.status(400).send({ error: err });
             }

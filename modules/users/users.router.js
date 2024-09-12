@@ -5,6 +5,7 @@ const usersRouter = Router();
 const { check } = require('express-validator');
 
 const fileUpload = require('../../middleware/fileUpload');
+const checkAuth = require('../../middleware/checkAuth');
 
 // GET /users
 usersRouter.get('/', getUsers);
@@ -23,6 +24,8 @@ usersRouter.post('/signup', fileUpload.single('image'),
 
 // Sign in User
 usersRouter.post('/signin', signInUser);
+
+usersRouter.use(checkAuth);
 
 // DELETE /users/:id
 usersRouter.delete('/:id', deleteUser);
