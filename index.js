@@ -45,7 +45,7 @@ app.use((error, req, res, next) => {
     res.json({ message: error.message || 'An unknown error occured!' });
 });
 
-mongoose.connect('mongodb+srv://Samarth:3x-2hhiF_yQSrzM@blog.lloogxh.mongodb.net/?retryWrites=true&w=majority').then(() => {
+mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_NAME}.lloogxh.mongodb.net/?retryWrites=true&w=majority`).then(() => {
     app.listen(port, () => {
         console.log("Connected");
     });

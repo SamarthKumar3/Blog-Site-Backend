@@ -71,23 +71,18 @@ module.exports = {
 
     },
 
-    addCommentsService: async (blog, name, comment, callback) => {
-        blog.comments.push({ name, comment });
-        await blog.save()
-            .then((blog) => {
-                callback(null, blog);
-            })
-            .catch((err) => {
-                callback(err, null);
-            });
+    addCommentsService: async (blog, name, comment) => {
+        try {
+            blog.comments.push({ name, comment });
+            const updatedBlog = await blog.save();
+            return updatedBlog;
+        } catch (err) {
+            throw new Error(err);
+        }
     },
 
-    deleteCommentService: async (blog, commentId, callback) => {
-        const comment = blog.comments.id(commentId);
-        if (!comment) {
-            return callback(err, null);
-        }
 
+    deleteCommentService: async (blog, commentId, callback) => {
         blog.comments.pull(commentId);
 
         await blog.save()

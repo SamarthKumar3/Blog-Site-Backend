@@ -146,20 +146,19 @@ module.exports = {
             if (!blog) {
                 return res.status(404).json({ error: 'Blog not found' });
             }
-            const { name, comment } = req.body;
-            if (!name || !comment) {
-                return res.status(400).json({ error: 'Missing data fields' });
+            const { userId, comment } = req.body;
+
+            let existingUser = await User.findById(userId);
+
+            if (!existingUser) {
+                return res.status(404).json({ error: 'User not found' });
             }
 
-            addCommentsService(blog, name, comment, (err, result) => {
-                if (err) {
-                    return res.status(304).send({ error: err });
-                }
-                else {
-                    return res.status(200).json(result);
-                }
-            });
-
+            if (!comment) {
+                return res.status(400).json({ error: 'Missing data fields' });
+            }
+            const updatedBlog = await addCommentsService(blog, existingUser.name, comment);
+            return res.status(200).json(updatedBlog);
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
@@ -167,7 +166,8 @@ module.exports = {
 
     deleteComment: async (req, res) => {
         try {
-            const { blogId, commentId } = req.params;
+            const { commentId, blogId } = req.params;
+            const currUser = req.userData.userId;
 
             if (!mongoose.Types.ObjectId.isValid(blogId) || !mongoose.Types.ObjectId.isValid(commentId)) {
                 return res.status(400).json({ error: 'Invalid blog ID or comment ID' });
@@ -176,6 +176,16 @@ module.exports = {
             const blog = await Blog.findById(blogId);
             if (!blog) {
                 return res.status(404).json({ error: 'Blog not found' });
+            }
+
+            const comment = blog.comments.id(commentId);
+            if (!comment) {
+                return res.status(404).json({ error: 'Comment not found' });
+            }
+            blogOwner = blog.creator.toString();
+
+            if (currUser !== blogOwner) {
+                return res.status(403).json({ error: 'Unauthorized action' }); 
             }
 
             deleteCommentService(blog, commentId, (err, result) => {
