@@ -54,21 +54,8 @@ const blogSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     }],
+    views: { type: Number, default: 0 },
     comments: [commentSchema]
-    // comments: [{
-    //     id: {
-    //         _id: uuid(),
-    //         type: Schema.Types.ObjectId,
-    //     },
-    //     name: {
-    //         type: String,
-    //         required: true
-    //     },
-    //     comment: {
-    //         type: String,
-    //         required: true
-    //     }
-    // }],
 },
     {
         timestamps: true
@@ -94,9 +81,6 @@ const userSchema = new Schema({
     bio: {
         type: String,
         // required: true
-    },
-    profilePic: {
-        type: String,
     },
     blogs: [{
         type: Schema.Types.ObjectId,

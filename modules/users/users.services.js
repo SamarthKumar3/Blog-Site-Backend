@@ -25,14 +25,34 @@ module.exports = {
             });
     },
 
-    getUserByIdService: (userId, callback) => {
-        userSchema.findById(userId, '-password')
-            .then((user) => {
-                callback(null, user);
-            })
-            .catch((err) => {
-                callback({ err: "Could not find user" }, null);
-            });
+    getUserByIdService: async (userId, callback) => {
+        try {
+            const user = await userSchema.findById(userId, '-password').populate('blogs');
+            if (!user) {
+                return callback('User not found', null);
+            }
+            const categories = [...new Set(user.blogs.flatMap(blog => blog.categories))];
+            const tags = [...new Set(user.blogs.flatMap(blog => blog.tags))];
+            const joiningDate = user.createdAt.toISOString().split('T')[0];
+            const profileData = {
+                id: user._id,
+                name: user.name,
+                bio: user.bio || '',
+                email: user.email,
+                totalBlogs: user.blogs.length,
+                categories,
+                tags,
+                blogTitles: user.blogs.map(blog => ({
+                    id: blog._id,
+                    title: blog.title
+                })),
+                joiningDate
+            };
+            return callback(null, profileData);
+        } catch (error) {
+            console.error('Error fetching user:', error);
+            return callback('Internal server error', null);
+        }
     },
 
     loginUser: async (existingUser, callback) => {

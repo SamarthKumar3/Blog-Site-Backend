@@ -1,6 +1,6 @@
 const { Blog, User } = require('../../db/db_config');
 const
-    { addBlogService, getBlogByIdService, deleteBlogService, addLikesService, addCommentsService, deleteCommentService }
+    { addBlogService, deleteBlogService, addLikesService, addCommentsService, deleteCommentService }
         = require('./blogs.service');
 
 const uuid = require('uuid').v4;
@@ -10,18 +10,27 @@ const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 
 module.exports = {
-    getBlogById: (req, res) => {
+    getBlogById: async (req, res) => {
         const blogId = req.params.blogId;
 
-        getBlogByIdService(blogId, (err, result) => {
-            if (err) {
-                return res.status(400).send({ error: err });
+        try {
+            const blog = await Blog.findById(blogId);
+            if (!blog) {
+                throw new HttpError('Could not find blog', 404);
             }
-            else {
-                return res.status(200).json(result);
+            try {
+                blog.views += 1;
+                await blog.save();
+            } catch (err) {
+                throw new HttpError("Error updating views", 500);
             }
-        })
-
+            return res.json(blog);
+        } catch (err) {
+            if (err instanceof HttpError) {
+                return res.status(err.code).json({ error: err.message });
+            }
+            return res.status(500).json({ error: "Server Error" });
+        }
     },
     getBlogs: async (req, res, next) => {
         let blogs;
@@ -120,9 +129,8 @@ module.exports = {
             if (!blog) {
                 return res.status(404).json({ error: 'Blog not found' });
             }
-            // // add user id to the request body // //
-            // // dont let the user to like the blog more than once // //
             const userId = req.body.userId;
+
             if (blog.likedBy.includes(userId)) {
                 return res.status(400).json({ error: 'User has already liked this post' });
             }
@@ -132,7 +140,7 @@ module.exports = {
                     return res.status(304).send({ error: err });
                 }
                 else {
-                    return res.status(200).json({ likes: result.likes });
+                    return res.status(200).json({ "success": result.likes });
                 }
             });
         } catch (error) {
@@ -164,6 +172,25 @@ module.exports = {
         }
     },
 
+    getTrendingBlog: async (req, res) => {
+        try {
+            // const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const trendingBlogs = await Blog.find({
+                // createdAt: { $gte: startDate },
+            })
+                .sort({ views: -1 })
+                .limit(10);
+
+            if (!trendingBlogs.length) {
+                return res.status(404).json({ message: "No trending blogs found." });
+            }
+            return res.json(trendingBlogs);
+        } catch (err) {
+            console.error("Error fetching trending blogs:", err);
+            return res.status(500).json({ error: "Server Error" });
+        }
+    },
+
     deleteComment: async (req, res) => {
         try {
             const { commentId, blogId } = req.params;
@@ -185,7 +212,7 @@ module.exports = {
             blogOwner = blog.creator.toString();
 
             if (currUser !== blogOwner) {
-                return res.status(403).json({ error: 'Unauthorized action' }); 
+                return res.status(403).json({ error: 'Unauthorized action' });
             }
 
             deleteCommentService(blog, commentId, (err, result) => {
@@ -201,5 +228,5 @@ module.exports = {
             console.log(error);
             return res.status(500).json({ error: error.message });
         }
-    }
+    },
 }

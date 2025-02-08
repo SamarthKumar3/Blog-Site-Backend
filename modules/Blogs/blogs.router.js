@@ -1,5 +1,5 @@
 const Router = require('express');
-const { getBlogs, addBlog, getBlogById, deleteBlog, addLikes, addComments, deleteComment } = require('./blogs.controller');
+const { getBlogs, addBlog, getBlogById, deleteBlog, addLikes, addComments, deleteComment, getTrendingBlog } = require('./blogs.controller');
 const fileUpload = require('../../middleware/fileUpload');
 const checkAuth = require('../../middleware/checkAuth');
 
@@ -9,7 +9,9 @@ const blogsRouter = Router();
 
 blogsRouter.get('/all-blogs', getBlogs);
 
-blogsRouter.get('/:blogId', getBlogById);
+blogsRouter.get('/all-blogs/:blogId', getBlogById);
+
+blogsRouter.get('/trending/new', getTrendingBlog);
 
 blogsRouter.use(checkAuth);
 
@@ -26,13 +28,10 @@ blogsRouter.patch('/likes/:blogId', addLikes);
 blogsRouter.post('/comments/:blogId', [
     check('name').not().isEmpty(),
     check('comment').isLength({ min: 5 })]
-    ,addComments);
+    , addComments);
 
 blogsRouter.delete('/comment/:commentId/delete/:blogId', deleteComment);
 
 blogsRouter.delete('/delete/:blogId', deleteBlog);
-
-
-//implement authorization route
 
 module.exports = { blogsRouter };

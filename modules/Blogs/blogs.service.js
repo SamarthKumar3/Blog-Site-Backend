@@ -32,16 +32,6 @@ module.exports = {
 
     },
 
-    getBlogByIdService: async (blogId, callback) => {
-        await Blog.findById(blogId)
-            .then((blog) => {
-                callback(null, blog);
-            })
-            .catch((err) => {
-                callback({ message: "Could not find Blog" }, null);
-            });
-    },
-
     deleteBlogService: async (blog, callback) => {
         console.log('Deleting blog with ID:', blog.id);
         try {
