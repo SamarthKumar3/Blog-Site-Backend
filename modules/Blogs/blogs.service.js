@@ -2,8 +2,8 @@ const { Blog } = require('../../db/db_config');
 const mongoose = require('mongoose');
 
 module.exports = {
-    addBlogService: async (title, content, tags, categories, img, user, callback) => {
-        let newBlog = new Blog({
+    addBlogService: async (title, content, tags, categories, img, user) => {
+        const newBlog = new Blog({
             title,
             content,
             creator: user.id,
@@ -14,34 +14,32 @@ module.exports = {
             comments: [],
             creatorName: user.name
         });
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
         try {
-            const sess = await mongoose.startSession();
-            sess.startTransaction();
             await newBlog.save({ session: sess });
             user.blogs.push(newBlog);
             await user.save({ session: sess });
             await sess.commitTransaction();
-            callback(null, newBlog);
+            return newBlog;
         } catch (err) {
-            console.log(err);
-            callback(err, null);
+            await sess.abortTransaction();
+            throw new Error("Could not create blog");
         }
-
     },
 
-    deleteBlogService: async (blog, callback) => {
-        console.log('Deleting blog with ID:', blog.id);
+    deleteBlogService: async (blog) => {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
         try {
-            const sess = await mongoose.startSession();
-            sess.startTransaction();
             await Blog.deleteOne({ _id: blog.id }, { session: sess });
             blog.creator.blogs.pull(blog);
             await blog.creator.save({ session: sess });
             await sess.commitTransaction();
-            callback(null, "Successfully Deleted");
+            return "Successfully Deleted";
         } catch (err) {
-            console.log(err);
-            callback(err, null);
+            await sess.abortTransaction();
+            throw new Error("Could not delete blog");
         }
     },
 

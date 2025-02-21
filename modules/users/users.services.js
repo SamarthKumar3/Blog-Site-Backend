@@ -68,7 +68,7 @@ module.exports = {
     },
 
     deleteUserService: (userId, callback) => {
-        console.log('Deleting user with ID:', userId);
+        console.log('Deleting user');
         userSchema.deleteOne({ _id: userId })
             .then((deleted) => {
                 callback(null, deleted);

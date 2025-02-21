@@ -17,20 +17,23 @@ blogsRouter.get('/top-blogs', getTopBlog)
 
 blogsRouter.use(checkAuth);
 
-blogsRouter.post('/create/new', fileUpload.single('image'),
-    [check('title').not().isEmpty(),
+const blogValidationRules = [
+    check('title').not().isEmpty(),
     check('content').isLength({ min: 20 }),
     check('tags').not().isEmpty(),
     check('categories').not().isEmpty()
-    ]
-    , addBlog);
+];
+
+const commentValidationRules = [
+    check('name').not().isEmpty(),
+    check('comment').isLength({ min: 5 })
+];
+
+blogsRouter.post('/create/new', fileUpload.single('image'), blogValidationRules, addBlog);
 
 blogsRouter.patch('/likes/:blogId', addLikes);
 
-blogsRouter.post('/comments/:blogId', [
-    check('name').not().isEmpty(),
-    check('comment').isLength({ min: 5 })]
-    , addComments);
+blogsRouter.post('/comments/:blogId', commentValidationRules, addComments);
 
 blogsRouter.delete('/comment/:commentId/delete/:blogId', deleteComment);
 

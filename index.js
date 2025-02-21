@@ -26,8 +26,6 @@ app.use(cors());
 app.use('/', globalRouter);
 
 app.use((req, res, next) => {
-    // const error = new HttpError('Could not find this route.', 400);
-    // throw error;
     return res.status(400).send({ error: 'Could not find this route.' });
 });
 

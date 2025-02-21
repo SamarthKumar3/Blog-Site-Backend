@@ -10,14 +10,12 @@ module.exports = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1]; 
         if (!token) {
-            throw new Error('No Token present! Authentication failed!');
+            throw new HttpError('Authentication failed: No token provided.', 401);
         }
         const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
         req.userData = { userId: decodedToken.userId };
         next();
-    }
-    catch (err) {
-        const error = new HttpError('Authentication failed!', 403);
-        return next(error);
+    } catch (err) {
+        return next(new HttpError('Authentication failed: Invalid token.', 403));
     }
 };
