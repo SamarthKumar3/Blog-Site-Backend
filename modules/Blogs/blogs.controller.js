@@ -3,7 +3,6 @@ const
     { addBlogService, deleteBlogService, addLikesService, addCommentsService, deleteCommentService }
         = require('./blogs.service');
 
-const uuid = require('uuid').v4;
 const fs = require('fs');
 const HttpError = require('../../middleware/http-error');
 const { validationResult } = require('express-validator');
@@ -54,9 +53,7 @@ module.exports = {
         if (!errors.isEmpty()) {
             return next(new HttpError('Invalid inputs passed, please check your data', 422));
         }
-        // const img = 'https://preview.redd.it/about-gojos-unlimited-void-v0-tpkax14ukz7c1.png?width=840&format=png&auto=webp&s=b6c464711bc6ee97b4f50118c64fbf51544d6c7d'
-        // const img = 'https://images7.alphacoders.com/131/1318705.png'
-
+        
         const img = req.file.path;
         if (!img) {
             return res.status(400).json("Missing Image");
@@ -89,17 +86,17 @@ module.exports = {
 
         let blog;
         try {
-            blog = await Blog.findById(blogId).populate('creator');
+            blog = await Blog.findById(blogId).populate('users');
         } catch (err) {
             const error = new HttpError(
-                'Something went wrong, could not delete place.',
+                'Something went wrong, could not delete blog.',
                 500
             );
             return next(error);
         }
 
         if (!blog) {
-            const error = new HttpError("Could not find a place with that id.", 404);
+            const error = new HttpError("Could not find a blog with that id.", 404);
             return next(error);
         }
         console.log(blog.creator.id);
@@ -156,6 +153,10 @@ module.exports = {
             }
             const { userId, comment } = req.body;
 
+            if(comment.length < 5) {
+                return res.status(400).json({ error: 'Comment must be at least 5 characters long' });
+            }
+
             let existingUser = await User.findById(userId);
 
             if (!existingUser) {
@@ -165,8 +166,11 @@ module.exports = {
             if (!comment) {
                 return res.status(400).json({ error: 'Missing data fields' });
             }
-            const updatedBlog = await addCommentsService(blog, existingUser.name, comment);
-            return res.status(200).json(updatedBlog);
+            // const updatedBlog = await addCommentsService(blog, existingUser.name, comment);
+            const name = existingUser.name;
+            blog.comments.push({ name, comment });
+            const updatedBlog = await blog.save();
+            return res.status(200).json({ updatedBlog, "Success": 'Comment added successfully' });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
@@ -187,6 +191,34 @@ module.exports = {
             return res.json(trendingBlogs);
         } catch (err) {
             console.error("Error fetching trending blogs:", err);
+            return res.status(500).json({ error: "Server Error" });
+        }
+    },
+
+    getTopBlog: async (req, res) => {
+        try {
+            const topBlogs = await Blog.aggregate([
+                {
+                    $addFields: {
+                        ranking: {
+                            $add: [
+                                { $multiply: ["$likes", 0.5] },
+                                { $multiply: ["$views", 0.2] },
+                                { $multiply: [{ $size: "$comments" }, 0.3] }
+                            ]
+                        }
+                    }
+                },
+                { $sort: { ranking: -1 } }, 
+                { $limit: 10 } 
+            ]);
+
+            if (!topBlogs.length) {
+                return res.status(404).json({ message: "No top blogs found" });
+            }
+            return res.json(topBlogs);
+        } catch (err) {
+            console.error("Error fetching top blogs:", err);
             return res.status(500).json({ error: "Server Error" });
         }
     },

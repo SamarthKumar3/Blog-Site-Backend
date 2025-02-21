@@ -1,5 +1,5 @@
 const Router = require('express');
-const { getBlogs, addBlog, getBlogById, deleteBlog, addLikes, addComments, deleteComment, getTrendingBlog } = require('./blogs.controller');
+const { getBlogs, addBlog, getBlogById, deleteBlog, addLikes, addComments, deleteComment, getTrendingBlog, getTopBlog } = require('./blogs.controller');
 const fileUpload = require('../../middleware/fileUpload');
 const checkAuth = require('../../middleware/checkAuth');
 
@@ -12,6 +12,8 @@ blogsRouter.get('/all-blogs', getBlogs);
 blogsRouter.get('/all-blogs/:blogId', getBlogById);
 
 blogsRouter.get('/trending/new', getTrendingBlog);
+
+blogsRouter.get('/top-blogs', getTopBlog)
 
 blogsRouter.use(checkAuth);
 

@@ -1,6 +1,5 @@
 const { Blog } = require('../../db/db_config');
 const mongoose = require('mongoose');
-const HttpError = require('../../middleware/http-error');
 
 module.exports = {
     addBlogService: async (title, content, tags, categories, img, user, callback) => {
@@ -9,8 +8,6 @@ module.exports = {
             content,
             creator: user.id,
             tags: JSON.parse(tags),
-            // tags,
-            // categories,
             categories: JSON.parse(categories),
             image: img,
             likes: 0,
@@ -67,7 +64,7 @@ module.exports = {
             const updatedBlog = await blog.save();
             return updatedBlog;
         } catch (err) {
-            throw new Error(err);
+            return err;
         }
     },
 

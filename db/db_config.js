@@ -48,13 +48,14 @@ const blogSchema = new Schema({
     },
     likes: {
         type: Number,
-        default: 0
+        default: 0,
+        index: true
     },
     likedBy: [{
         type: Schema.Types.ObjectId,
         ref: 'User'
     }],
-    views: { type: Number, default: 0 },
+    views: { type: Number, default: 0, index: true },
     comments: [commentSchema]
 },
     {
@@ -62,6 +63,8 @@ const blogSchema = new Schema({
     }
 
 );
+
+blogSchema.index({ "views": -1, "likes": -1 });
 
 const userSchema = new Schema({
     name: {

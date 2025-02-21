@@ -1,4 +1,3 @@
-// Import necessary modules and dependencies
 const userSchema = require('../../db/db_config').User;
 const mongoose = require('mongoose');
 const { createUser, getUserByIdService, deleteUserService, loginUser } = require('./users.services');
